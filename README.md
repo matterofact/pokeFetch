@@ -4,4 +4,4 @@
 
 #### Description:
 
-* A cross-platform python application to view pokedex information.
+* A cross-platform python application to view Pokédex information.
