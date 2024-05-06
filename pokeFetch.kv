@@ -34,7 +34,7 @@
             cursor_color: 'black'
             multiline: False
             top: root.top - 800
-            on_text_validate: root.on_enter()
+            on_text_validate: root.on_enter(), self.canvas.ask_update()
 
         Label:
             text: 'ID: ' + root.dexId

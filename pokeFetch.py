@@ -6,6 +6,7 @@ import django
 import pokepy
 import kivy.graphics
 import sys
+import faulthandler
 
 from kivy.app import App
 from kivy.uix.widget import Widget
@@ -18,30 +19,29 @@ from kivy.properties import StringProperty
 from io import BytesIO
 
 
+
 def main():
     if __name__ == '__main__':
         pokeFetchApp().run()
 
     
 class pokeFetch(Widget):
-    search = 'bulbasaur'
-    pokemon = pypokedex.get(name=str(search))
-    dexId = str(pokemon.dex)
-    img = pokemon.sprites.front['default']
-    name = pokemon.name.title()
-    if len(pokemon.types) > 1:
-        types = str(pokemon.types[0]).title() + ', ' + str(pokemon.types[1]).title()
-    else:
-        types = str(pokemon.types[0]).title()
+    def __init__(self, search):
+        self.pokemon = pypokedex.get(name=search)
+        self.dexId = str(self.pokemon.dex)
+        self.img = self.pokemon.sprites.front['default']
+        self.name = self.pokemon.name.title()
+        if len(self.pokemon.types) > 1:
+            self.types = str(self.pokemon.types[0]).title() + ', ' + str(self.pokemon.types[1]).title()
+        else:
+            self.types = str(self.pokemon.types[0]).title()
 
     def on_enter(self):
-        search = self.ids.input.text
-        return pokeFetch()
-
+        return pokeFetch(self.ids.input.text)
 
 class pokeFetchApp(App):
     def build(self):
-        return pokeFetch()
+        return pokeFetch('bulbasaur')
 
 
 
