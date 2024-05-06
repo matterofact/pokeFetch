@@ -1,7 +1,9 @@
-# ignore the following
+#ignore the following
 
 pokeapi/
 bin/
 include/
 lib/
 share/
+pokeTest.py
+test.jpeg
