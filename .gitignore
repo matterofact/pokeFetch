@@ -1,0 +1,7 @@
+# ignore the following
+
+pokeapi/
+bin/
+include/
+lib/
+share/

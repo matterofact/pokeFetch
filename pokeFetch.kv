@@ -1,0 +1,73 @@
+#:kivy 2.3.0
+
+<pokeFetch>:
+    
+    canvas:
+        Color:
+            rgb: 0.2,0.2,0.2
+        Rectangle:
+            size: self.width, self.height        
+
+    GridLayout:
+        Label:
+            text: "Pokedex"
+            font_size: '30sp'
+            center_x: root.width / 8
+            top: root.top - 50
+            color: 1, 0.796, 0.0196
+
+        Label:
+            text: "Gotta catch 'em all!"
+            font_size: '30sp'
+            center_x: root.width / 2
+            top: root.top - 50
+            color: 1, 0.796, 0.0196
+
+        TextInput:
+            id: input
+            focus: True
+            hint_text: 'Enter a pokemon: '
+            font_size: '30sp'
+            size_hint_y: None
+            width: 1000
+            center_x: root.width / 2
+            cursor_color: 'black'
+            multiline: False
+            top: root.top - 800
+            on_text_validate: root.on_enter()
+
+        Label:
+            text: 'ID: ' + root.dexId
+            font_size: '30sp'
+            center_x: root.width / 2
+            top: root.top - 225
+            color: 'white'
+
+
+        Label:
+            text: 'Name: ' + root.name
+            font_size: '30sp'
+            center_x: root.width / 2
+            top: root.top - 325
+            color: 'white'
+
+        
+        AsyncImage:
+            allow_stretch: True
+            keep_ratio: False
+            source: root.img
+            size_hint_y: None
+            width: 250
+            size_hint_x: None
+            height: 250
+            pos: root.width / 9, root.top - 450
+        
+        Label:
+            text: 'Types: ' + root.types
+            font_size: '30sp'
+            center_x: root.width / 2
+            top: root.top - 425
+            color: 'white'
+
+    
+        
