@@ -29,7 +29,7 @@ def clear_window(root, frm, search, user_id):
     frm.destroy()
     try: 
         pypokedex.get(name=search)  
-    except PyPokedexHTTPError as err:
+    except PyPokedexError as err:
         if err.code == 404:
             clear_window(root, ttk.Frame(root, padding=10), 'bulbasaur', user_id)
         else:
@@ -65,6 +65,13 @@ def submitParty(entry_widgets, user_id, root, frm):
     # Collect the values from the entry widgets
     party_data = [entry.get() for entry in entry_widgets]
 
+ #   for pokemon in party_data:
+ #       if pokemon:
+ #           try:
+ #           except pypokedex.PyPokedexHTTPError:
+ ##               pypokedex.get(name=pokemon.lower())
+ #               messagebox.showerror("Invalid Pokemon", f"{pokemon} is not a valid Pokemon name.")
+ #               return
     # Print collected data for debugging (you can replace this with actual database insertion code)
     print("Collected Party Data:")
     for i, pokemon in enumerate(party_data, start=1):
@@ -94,7 +101,12 @@ def login(u, p, root, frm):
         "SELECT username FROM users WHERE username = ?", [u]
     )
 
-    username = c.fetchone()[0]
+    username = c.fetchone()
+
+    if username is None:
+        messagebox.showerror("Login Failed", "Invalid username or password.")
+        loginWindow(frm)
+        return
 
     user_id = c.execute(
         "SELECT id FROM users WHERE username = ?", [u]
@@ -112,6 +124,7 @@ def login(u, p, root, frm):
         frm.destroy()
         summaryWindow('bulbasaur', root, frm, user_id)
     else:
+        messagebox.showerror("Login Failed", "Invalid username or password.")
         loginWindow(frm)
 
 def loginWindow(frm):
@@ -136,6 +149,17 @@ def loginWindow(frm):
     registerButton = ttk.Button(frm, text="Register", command=lambda: registerWindow(root, frm))
     registerButton.pack()
     root.mainloop()
+
+def delete_party(party_id, root, frm, user_id):
+# TODO parties not deleting correctly when they aren't full.
+    try:
+        c.execute("DELETE FROM parties WHERE party_id = ?", (party_id,))
+        db.commit()
+        messagebox.showinfo("Success", "Party deleted successfully!")
+    except sqlite3.Error as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+    finally:
+        partiesWindow(root, frm, user_id)
   
 def partiesWindow(root, frm, user_id):
     root.title("Parties")
@@ -149,16 +173,24 @@ def partiesWindow(root, frm, user_id):
     parties = c.fetchall()
 
     # Remove the first two elements from each tuple
-    for i in range(0,len(parties)):
+    for i, party in enumerate(parties):
+        party_id = party[0]
         party_contents = [party[2:] for party in parties]
         party = ttk.Label(frm, text='Party ' + str(i+1))
-        party.pack()
+        party.pack(pady=10)
         # Button to view detailed summary of the first party for demonstration
         summary_button = ttk.Button(frm, text='View Party Summary', command=lambda i=i: partySummaryWindow(root, frm, user_id, parties[i][2:]))
         summary_button.pack(pady=10)
 
+        delete_button = ttk.Button(frm, text='Delete Party', command=lambda party_id=party_id: delete_party(party_id, root, frm, user_id))
+        delete_button.pack(pady=10)
+
     new_party_button = ttk.Button(frm, text="New party", command=lambda: createParty(root, frm, user_id))
     new_party_button.pack()
+
+    # Back button to go back to the parties window
+    back_button = ttk.Button(frm, text='Back', command=lambda: summaryWindow('bulbasaur', root, frm, user_id))
+    back_button.pack()
 
 
 # TODO Allow user to delete parties from the database
@@ -228,17 +260,33 @@ def registerWindow(root, frm):
     loginButton.pack()
 
 def register(root, frm, username, password, passwordConfirmation):
-    if password == passwordConfirmation:
-        c.execute(
-            "INSERT INTO users (username, password_hash) VALUES (?, ?)", (username, hash_password(password))
-        )
+    if not username or not password or not passwordConfirmation:
+        messagebox.showerror("Registration Failed", "All fields are required.")
+        return
+    
+    if password != passwordConfirmation:
+        messagebox.showerror("Registration Failed", "Passwords do not match.")
+        return
+
+    if len(password) < 8:
+        messagebox.showerror("Registration Failed", "Password must be at least 8 characters long.")
+        return
+    
+    hashed_password = hash_password(password)
+
+    try:
+        c.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (username, hashed_password))
         db.commit()
         frm.destroy()
         frm = ttk.Frame(root, padding=10)
-        frm.pack() 
+        frm.pack()
         tk.Label(frm, text="Registered!").pack()
         tk.Button(frm, text="Login", command=lambda: loginWindow(frm)).pack()
- 
+    # TODO Exception is allowing duplicate usernames
+    except sqlite3.IntegrityError:
+        messagebox.showerror("Registration Failed", "Username already exists.")
+        registerWindow(root, frm)
+
 ## Check if username exists in database, if not, enter user into database
     
 # Code to create a new user:
@@ -253,13 +301,19 @@ def register(root, frm, username, password, passwordConfirmation):
 def summaryWindow(search, root, frm, user_id):
     http = urllib3.PoolManager()
     root.title("Summary: " + search.title())
+    frm.destroy()
     frm = ttk.Frame(root, padding=10)
     frm.grid()
     frm.grid_columnconfigure(0, weight=1)
     frm.grid_rowconfigure(0, weight=1)
     frm.focus()
 
-    pokemon = pypokedex.get(name=search)
+# TODO check the exception for this
+    try:
+        pokemon = pypokedex.get(name=search)
+    except pypokedex.PyPokedexError:
+        messagebox.showerror("Error", f"{search} is not a valid Pokémon name.")
+        return
     dexId = str(pokemon.dex)
     pokeName = pokemon.name.title()
     url = pokemon.sprites.front['default']
@@ -307,6 +361,9 @@ def summaryWindow(search, root, frm, user_id):
     searchBox.grid(column=1, row=len(labels) + 2, sticky='w', padx=5)
     searchButton.grid(column=2, row=len(labels) + 2, sticky='w', padx=5)
     partiesButton.grid(column=0, row=len(labels) + 3, sticky='w', pady=10)
+
+    logoutButton = ttk.Button(frm, text='Log Out', command=lambda: loginWindow(frm))
+    logoutButton.grid(column=0, row=len(labels) + 4, sticky='w', pady=10)
 
     root.mainloop()
 
