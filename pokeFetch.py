@@ -58,10 +58,10 @@ def createParty(root, frm, user_id):
         entry_widgets.append(party_member_entry)
 
     # Submit button
-    submit_party_button = ttk.Button(frm, text='Submit Party', command=lambda: submitParty(entry_widgets, user_id))
+    submit_party_button = ttk.Button(frm, text='Submit Party', command=lambda: submitParty(entry_widgets, user_id, root, frm))
     submit_party_button.pack(pady=10)
 
-def submitParty(entry_widgets, user_id):
+def submitParty(entry_widgets, user_id, root, frm):
     # Collect the values from the entry widgets
     party_data = [entry.get() for entry in entry_widgets]
 
@@ -71,9 +71,9 @@ def submitParty(entry_widgets, user_id):
         print(f"Pokemon {i}: {pokemon}")
     
     # Insert the data into the database
-    insert_party_into_db(user_id, party_data)
+    insert_party_into_db(user_id, party_data, root, frm)
 
-def insert_party_into_db(user_id, party_data):
+def insert_party_into_db(user_id, party_data, root, frm):
     c.execute('''
         INSERT INTO parties (user_id, pokemon1, pokemon2, pokemon3, pokemon4, pokemon5, pokemon6)
         VALUES (?, ? ,?, ?, ?, ?, ?)
@@ -81,6 +81,7 @@ def insert_party_into_db(user_id, party_data):
     db.commit()
 
     partiesWindow(root, frm, user_id)
+
     
 def hash_password(plain_text_password):
     return bcrypt.hashpw(plain_text_password, bcrypt.gensalt())
@@ -159,6 +160,8 @@ def partiesWindow(root, frm, user_id):
     new_party_button = ttk.Button(frm, text="New party", command=lambda: createParty(root, frm, user_id))
     new_party_button.pack()
 
+
+# TODO Allow user to delete parties from the database
 def partySummaryWindow(root, frm, user_id, party):
     # Clear the frame
     for widget in frm.winfo_children():
