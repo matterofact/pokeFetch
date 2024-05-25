@@ -19,6 +19,9 @@ from tkinter import Entry
 from tkinter import messagebox
 from io import BytesIO
 from urllib.error import HTTPError
+from pypokedex import exceptions
+
+# TODO Add comments to cite chatgpt usage
 
 
 db = sqlite3.connect("pokeFetch.db")
@@ -26,17 +29,19 @@ c = db.cursor()
 
 
 def clear_window(root, frm, search, user_id):
-    frm.destroy()
     try: 
         pypokedex.get(name=search)  
-    except PyPokedexError as err:
-        if err.code == 404:
-            clear_window(root, ttk.Frame(root, padding=10), 'bulbasaur', user_id)
+    except pypokedex.exceptions.PyPokedexError as err:
+        if err:
+            return
         else:
-            pass
+            frm.destroy()
     summaryWindow(search, root, frm, user_id)
 
-def createParty(root, frm, user_id):
+# Used chatgpt to quickly create a form with multiple inputs, and then loop through each of them to add each input to a list which can
+# then be passed to the submit party function to be entered into the database
+
+def createParty(root, frm, user_id, pokeName):
     # TODO Need to allow for looping submission of pokemon into a party, and then insert into the parties database
 
     # Clear the frame
@@ -58,10 +63,10 @@ def createParty(root, frm, user_id):
         entry_widgets.append(party_member_entry)
 
     # Submit button
-    submit_party_button = ttk.Button(frm, text='Submit Party', command=lambda: submitParty(entry_widgets, user_id, root, frm))
+    submit_party_button = ttk.Button(frm, text='Submit Party', command=lambda: submitParty(entry_widgets, user_id, root, frm, pokeName))
     submit_party_button.pack(pady=10)
 
-def submitParty(entry_widgets, user_id, root, frm):
+def submitParty(entry_widgets, user_id, root, frm, pokeName):
     # Collect the values from the entry widgets
     party_data = [entry.get() for entry in entry_widgets]
 
@@ -73,22 +78,26 @@ def submitParty(entry_widgets, user_id, root, frm):
  #               messagebox.showerror("Invalid Pokemon", f"{pokemon} is not a valid Pokemon name.")
  #               return
     # Print collected data for debugging (you can replace this with actual database insertion code)
+    # This function was written by chatgpt to allow for keeping track of which names are being submitted into the parties database to make
+    # it easier to debug database input before running the insert_party_into_db function and insert them into the database itself
     print("Collected Party Data:")
     for i, pokemon in enumerate(party_data, start=1):
         print(f"Pokemon {i}: {pokemon}")
     
     # Insert the data into the database
-    insert_party_into_db(user_id, party_data, root, frm)
+    insert_party_into_db(user_id, party_data, root, frm, pokeName)
 
-def insert_party_into_db(user_id, party_data, root, frm):
+def insert_party_into_db(user_id, party_data, root, frm, pokeName):
     c.execute('''
         INSERT INTO parties (user_id, pokemon1, pokemon2, pokemon3, pokemon4, pokemon5, pokemon6)
         VALUES (?, ? ,?, ?, ?, ?, ?)
     ''', (user_id, *party_data))
     db.commit()
 
-    partiesWindow(root, frm, user_id)
+    partiesWindow(root, frm, user_id, pokeName)
 
+# I used bcrypt to hash the passwords and then check entered passwords against the hash, so passwords are stored in the
+# database securely and not in plain text
     
 def hash_password(plain_text_password):
     return bcrypt.hashpw(plain_text_password, bcrypt.gensalt())
@@ -150,18 +159,18 @@ def loginWindow(frm):
     registerButton.pack()
     root.mainloop()
 
-def delete_party(party_id, root, frm, user_id):
+def delete_party(party_id, root, frm, user_id, pokeName):
 # TODO parties not deleting correctly when they aren't full.
     try:
-        c.execute("DELETE FROM parties WHERE party_id = ?", (party_id,))
+        c.execute("DELETE FROM parties WHERE party_id = ? AND user_id = ?", (party_id, user_id))
         db.commit()
         messagebox.showinfo("Success", "Party deleted successfully!")
     except sqlite3.Error as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
     finally:
-        partiesWindow(root, frm, user_id)
+        partiesWindow(root, frm, user_id, pokeName)
   
-def partiesWindow(root, frm, user_id):
+def partiesWindow(root, frm, user_id, pokeName):
     root.title("Parties")
     frm.destroy()
     frm = ttk.Frame(root, padding=10)
@@ -172,34 +181,46 @@ def partiesWindow(root, frm, user_id):
         )
     parties = c.fetchall()
 
+
+    # I've moved these buttons to the top of the list, because when there is an invalid entry in a party, you get stuck on the parties page unless
+    # the buttons are at the top
+    new_party_button = ttk.Button(frm, text="New party", command=lambda: createParty(root, frm, user_id, pokeName))
+    new_party_button.pack()
+
+    # Back button to go back to the parties window
+    back_button = ttk.Button(frm, text='Back', command=lambda: summaryWindow(pokeName, root, frm, user_id))
+    back_button.pack()
+
+    # I had to change this section of the code because chatgpt was assigning party_id to the user_id column instead
+    # I've changed the tuple index to 1 from 0, so it now assigns the correct party id to the party when it's deleted
+    # This means the function now works correctly and removes the delete party from the database
+
     # Remove the first two elements from each tuple
     for i, party in enumerate(parties):
-        party_id = party[0]
+        party_id = party[1]
         party_contents = [party[2:] for party in parties]
         party = ttk.Label(frm, text='Party ' + str(i+1))
         party.pack(pady=10)
         # Button to view detailed summary of the first party for demonstration
-        summary_button = ttk.Button(frm, text='View Party Summary', command=lambda i=i: partySummaryWindow(root, frm, user_id, parties[i][2:]))
+        summary_button = ttk.Button(frm, text='View Party Summary', command=lambda i=i: partySummaryWindow(root, frm, user_id, parties[i][2:], pokeName))
         summary_button.pack(pady=10)
 
-        delete_button = ttk.Button(frm, text='Delete Party', command=lambda party_id=party_id: delete_party(party_id, root, frm, user_id))
+        delete_button = ttk.Button(frm, text='Delete Party', command=lambda party_id=party_id: delete_party(party_id, root, frm, user_id, pokeName))
         delete_button.pack(pady=10)
 
-    new_party_button = ttk.Button(frm, text="New party", command=lambda: createParty(root, frm, user_id))
-    new_party_button.pack()
-
-    # Back button to go back to the parties window
-    back_button = ttk.Button(frm, text='Back', command=lambda: summaryWindow('bulbasaur', root, frm, user_id))
-    back_button.pack()
 
 
-# TODO Allow user to delete parties from the database
-def partySummaryWindow(root, frm, user_id, party):
+# TODO Fix deleting of non-complete parties, add types to party contents page
+def partySummaryWindow(root, frm, user_id, party, pokeName):
     # Clear the frame
     for widget in frm.winfo_children():
         widget.destroy()
 
     root.title("Party Summary")
+
+    # Back button to go back to the parties window, moved to the top for the same reasons as stated in the partiesWindow comments
+    back_button = ttk.Button(frm, text='Back', command=lambda: partiesWindow(root, frm, user_id, pokeName))
+    back_button.grid(column=0, row=len(party) + 1, columnspan=2, pady=10)
 
     # Create a new frame for the party summary
     summary_frame = ttk.Frame(frm, padding=10)
@@ -208,6 +229,7 @@ def partySummaryWindow(root, frm, user_id, party):
     # Fetch and display each Pokémon's sprite and name
     for i, pokemon_name in enumerate(party):
         if pokemon_name:
+            partyPos = i
             pokemon = pypokedex.get(name=str(pokemon_name).lower())
             poke_name = pokemon.name.title()
             sprite_url = pokemon.sprites.front['default']
@@ -223,10 +245,21 @@ def partySummaryWindow(root, frm, user_id, party):
             sprite_label.image = sprite_photo  # Keep a reference to avoid garbage collection
             sprite_label.grid(column=1, row=i, padx=5, pady=5)
 
-    # Back button to go back to the parties window
-    back_button = ttk.Button(summary_frame, text='Back', command=lambda: partiesWindow(root, frm, user_id))
-    back_button.grid(column=0, row=len(party) + 1, columnspan=2, pady=10)
- 
+            delete_button = ttk.Button(frm, text="Delete from party", command=lambda partyPos=partyPos: remove_from_party(root, frm, user_id, party, pokeName, partyPos))
+            delete_button.grid(column=2, row=i, padx=5, pady=5)
+            
+
+
+def remove_from_party(root, frm, user_id, party_id, pokeName, index):
+    column_name = f"pokemon{index+1}"
+    try:
+        c.execute("UPDATE parties SET ? = '' WHERE party_id = ? AND user_id = ?", (str(column_name), party_id, user_id))
+        db.commit()
+        messagebox.showinfo("Success", "Pokemon removed from party successfully!")
+    except sqlite3.Error as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+    finally:
+        partySummaryWindow(root, frm, user_id, party_id, pokeName) 
 
 def registerWindow(root, frm):
 
@@ -308,10 +341,9 @@ def summaryWindow(search, root, frm, user_id):
     frm.grid_rowconfigure(0, weight=1)
     frm.focus()
 
-# TODO check the exception for this
     try:
         pokemon = pypokedex.get(name=search)
-    except pypokedex.PyPokedexError:
+    except pypokedex.exceptions.PyPokedexError:
         messagebox.showerror("Error", f"{search} is not a valid Pokémon name.")
         return
     dexId = str(pokemon.dex)
@@ -325,7 +357,8 @@ def summaryWindow(search, root, frm, user_id):
     types = ', '.join([t.title() for t in pokemon.types])
     abilities = ', '.join([a[0].title() for a in pokemon.abilities])
 
-    # Creating widgets
+    # Creating widgets - I used ChatGPT for this so the layout is created using a loop, which is more concise than laying each element out 
+    # individually
     labels = [
         ("Pokedex ID: ", dexId),
         ("Name: ", pokeName),
@@ -355,7 +388,7 @@ def summaryWindow(search, root, frm, user_id):
     pokeSearch = tk.StringVar()
     searchBox = ttk.Entry(frm, textvariable=pokeSearch, font=('', 15))
     searchButton = ttk.Button(frm, text="Search", command=lambda: clear_window(root, frm, pokeSearch.get(), user_id))
-    partiesButton = ttk.Button(frm, text="Parties", command=lambda: partiesWindow(root, frm, user_id))
+    partiesButton = ttk.Button(frm, text="Parties", command=lambda: partiesWindow(root, frm, user_id, pokeName))
 
     search_label.grid(column=0, row=len(labels) + 2, sticky='w', padx=5)
     searchBox.grid(column=1, row=len(labels) + 2, sticky='w', padx=5)
