@@ -202,16 +202,16 @@ def partiesWindow(root, frm, user_id, pokeName):
         party = ttk.Label(frm, text='Party ' + str(i+1))
         party.pack(pady=10)
         # Button to view detailed summary of the first party for demonstration
-        summary_button = ttk.Button(frm, text='View Party Summary', command=lambda i=i: partySummaryWindow(root, frm, user_id, parties[i][2:], pokeName))
+        summary_button = ttk.Button(frm, text='View Party Summary', command=lambda i=i: partySummaryWindow(root, frm, user_id, party_id, parties[i][2:], pokeName))
         summary_button.pack(pady=10)
 
         delete_button = ttk.Button(frm, text='Delete Party', command=lambda party_id=party_id: delete_party(party_id, root, frm, user_id, pokeName))
         delete_button.pack(pady=10)
-
+        
 
 
 # TODO Fix deleting of non-complete parties, add types to party contents page
-def partySummaryWindow(root, frm, user_id, party, pokeName):
+def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
     # Clear the frame
     for widget in frm.winfo_children():
         widget.destroy()
@@ -245,21 +245,23 @@ def partySummaryWindow(root, frm, user_id, party, pokeName):
             sprite_label.image = sprite_photo  # Keep a reference to avoid garbage collection
             sprite_label.grid(column=1, row=i, padx=5, pady=5)
 
-            delete_button = ttk.Button(frm, text="Delete from party", command=lambda partyPos=partyPos: remove_from_party(root, frm, user_id, party, pokeName, partyPos))
+            delete_button = ttk.Button(summary_frame, text="Delete from party", command=lambda partyPos=partyPos: remove_from_party(root, frm, user_id, party_id, party, pokeName, partyPos))
             delete_button.grid(column=2, row=i, padx=5, pady=5)
             
 
-
-def remove_from_party(root, frm, user_id, party_id, pokeName, index):
+# There is a pause when the party summary is reloaded. And it doesn't load the deletion until after backing out to the parties screen and back
+# into partySummaryWindow
+def remove_from_party(root, frm, user_id, party_id, party, pokeName, index):
     column_name = f"pokemon{index+1}"
     try:
-        c.execute("UPDATE parties SET ? = '' WHERE party_id = ? AND user_id = ?", (str(column_name), party_id, user_id))
+        query = f"UPDATE parties SET {column_name} = NULL WHERE user_id = ? AND party_id = ?"
+        c.execute(query, (user_id, party_id))
         db.commit()
         messagebox.showinfo("Success", "Pokemon removed from party successfully!")
     except sqlite3.Error as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
     finally:
-        partySummaryWindow(root, frm, user_id, party_id, pokeName) 
+        partySummaryWindow(root, frm, user_id, party_id, party, pokeName) 
 
 def registerWindow(root, frm):
 
