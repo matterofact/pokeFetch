@@ -160,7 +160,6 @@ def loginWindow(frm):
     root.mainloop()
 
 def delete_party(party_id, root, frm, user_id, pokeName):
-# TODO parties not deleting correctly when they aren't full.
     try:
         c.execute("DELETE FROM parties WHERE party_id = ? AND user_id = ?", (party_id, user_id))
         db.commit()
@@ -209,8 +208,10 @@ def partiesWindow(root, frm, user_id, pokeName):
         delete_button.pack(pady=10)
         
 
+# I used ChatGPT to quickly create the code for this funciton since it's quite similar to the pokemon summary window.
+# There was a bug initially in that code that wouldn't delete parties correctly, so I went through and tweaked how the buttons had their 
+# party ids assigned, and that fixed the problem with ChatGPT's code.
 
-# TODO Fix deleting of non-complete parties, add types to party contents page
 def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
     # Clear the frame
     for widget in frm.winfo_children():
@@ -321,21 +322,13 @@ def register(root, frm, username, password, passwordConfirmation):
         frm.pack()
         tk.Label(frm, text="Registered!").pack()
         tk.Button(frm, text="Login", command=lambda: loginWindow(frm)).pack()
-    # TODO Exception is allowing duplicate usernames
+    # Check if username exists in database, if not, enter user into database
     except sqlite3.IntegrityError:
         messagebox.showerror("Registration Failed", "Username already exists.")
         registerWindow(root, frm)
 
-## Check if username exists in database, if not, enter user into database
+
     
-# Code to create a new user:
-#db.execute (
- #           "INSERT INTO users (username, hash) VALUES(?, ?)", username, generate_password_hash(password)
-  #      )
-
-
-# TODO Need to check the api gives a valid response before creating the summary window. 
-# If it returns a pyPokedexError or a HTTP error, it should just recreate the current frame
 
 def summaryWindow(search, root, frm, user_id):
     http = urllib3.PoolManager()
@@ -418,7 +411,7 @@ def summaryWindow(search, root, frm, user_id):
     partiesButton = ttk.Button(frm, text="Parties", command=lambda: partiesWindow(root, frm, user_id, pokeName))
 
     prev_button.grid(column=0, row=len(labels) + 2, sticky='w', padx=5)
-    next_button.grid(column=1, row=len(labels) + 2, sticky='w', padx=5)
+    next_button.grid(column=2, row=len(labels) + 2, sticky='w', padx=5)
     blankLabel2.grid(column=0, row=len(labels) + 3, sticky='w', padx=5, pady=5)
     search_label.grid(column=0, row=len(labels) + 4, sticky='w', padx=5)
     searchBox.grid(column=1, row=len(labels) + 4, sticky='w', padx=5)
