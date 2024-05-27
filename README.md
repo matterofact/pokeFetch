@@ -15,7 +15,7 @@
 
 * To fetch the Pokemon sprites and information, I’ve used the pyPokedex library, which implements functions for fetching information from the pokeAPI web API. This saved a lot of work maintaining a large database of Pokemon and allowed for relatively quick acquisition of the sprite photos. However, I’ve probably look to use a more efficient method to fetch multiple requests from this API, because the party summary pages are quite slow to load due to the large number of simultaneous requests. 
 
-* Users can create parties, which will be inserted into the parties table in the SQL database. These are then shown in a list on the ‘parties’ page. The user can then click on a party summary button, which will show them the Pokemon in the given party, as well as the sprites of the Pokemon in that party, their names and their type information in a list format.  
+* Users can create parties, which will be inserted into the parties table in the SQL database. These are then shown in a list on the ‘parties’ page. The user can then click on a party summary button, which will show them the Pokemon in the given party, as well as the sprites of the Pokemon in that party, their names and their type information in a list format. Each party is assigned an id number, but the user can choose to add a name to each party they create, which can be used to keep track of different parties. In the event the name is left empty, the page will simply replace this with 'Party' and the current iteration from the i variable in the loop that lays out the parties in the parties window list.
 
 * TODO - At the bottom of the page is a visual that displays type coverage for the selected party, and displays weaknesses using red, grey, and green to indicate coverage. 
 
