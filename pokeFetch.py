@@ -359,6 +359,8 @@ def summaryWindow(search, root, frm, user_id):
     response = requests.get(url)
     temp = PIL.Image.open(BytesIO(response.content))
     sprite = ImageTk.PhotoImage(temp)
+    height = int(pokemon.height)
+    weight = int(pokemon.weight)
 
     types = ', '.join([t.title() for t in pokemon.types])
     abilities = ', '.join([a[0].title() for a in pokemon.abilities])
@@ -382,6 +384,9 @@ def summaryWindow(search, root, frm, user_id):
         ("Name: ", pokeName),
         ("Type: ", types),
         ("Ability: ", abilities),
+        ("Height: ", str(height/10) + " m"),
+        ("Weight: ", str(weight/10) + " kg"),
+        ("", ""),
         ("Stats: ", ""),
         ("HP: ", stats[0]),
         ("Attack: ", stats[1]),
