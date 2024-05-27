@@ -359,6 +359,16 @@ def summaryWindow(search, root, frm, user_id):
     types = ', '.join([t.title() for t in pokemon.types])
     abilities = ', '.join([a[0].title() for a in pokemon.abilities])
 
+    if pokemon.dex < 1025:
+        next_pokemon = pypokedex.get(dex=pokemon.dex+1)
+    else:
+        next_pokemon = pypokedex.get(dex=1025)
+    
+    if pokemon.dex > 1: 
+        prev_pokemon = pypokedex.get(dex=pokemon.dex-1)
+    else:
+        prev_pokemon = pypokedex.get(dex=1)
+
     # Creating widgets - I used ChatGPT for this so the layout is created using a loop, which is more concise than laying each element out 
     # individually
     labels = [
@@ -386,19 +396,24 @@ def summaryWindow(search, root, frm, user_id):
     blankLabel = tk.Label(frm, text="")
     blankLabel.grid(column=0, row=len(labels) + 1, pady=10)
 
+    next_button = ttk.Button(frm, text="Next", command=lambda: summaryWindow(next_pokemon.name, root, frm, user_id))
+    prev_button = ttk.Button(frm, text="Prev", command=lambda: summaryWindow(prev_pokemon.name, root, frm, user_id))
     search_label = ttk.Label(frm, text="Search for a Pokemon: ", font=('', 15))
     pokeSearch = tk.StringVar()
     searchBox = ttk.Entry(frm, textvariable=pokeSearch, font=('', 15))
     searchButton = ttk.Button(frm, text="Search", command=lambda: clear_window(root, frm, pokeSearch.get(), user_id))
-    partiesButton = ttk.Button(frm, text="Parties", command=lambda: partiesWindow(root, frm, user_id, pokeName))
+    partiesButton = ttk.Button(frm, text="Parties", command=lambda: summaryWindow(root, frm, user_id, pokeName))
 
-    search_label.grid(column=0, row=len(labels) + 2, sticky='w', padx=5)
-    searchBox.grid(column=1, row=len(labels) + 2, sticky='w', padx=5)
-    searchButton.grid(column=2, row=len(labels) + 2, sticky='w', padx=5)
-    partiesButton.grid(column=0, row=len(labels) + 3, sticky='w', pady=10)
+    prev_button.grid(column=0, row=len(labels) + 2, sticky='w', padx=5)
+    next_button.grid(column=1, row=len(labels) + 2, sticky='w', padx=5)
+    blankLabel.grid(column=0, row=len(labels) + 3, sticky='w', padx=5)
+    search_label.grid(column=0, row=len(labels) + 4, sticky='w', padx=5)
+    searchBox.grid(column=1, row=len(labels) + 4, sticky='w', padx=5)
+    searchButton.grid(column=2, row=len(labels) + 4, sticky='w', padx=5)
+    partiesButton.grid(column=0, row=len(labels) + 5, sticky='w', pady=10)
 
     logoutButton = ttk.Button(frm, text='Log Out', command=lambda: loginWindow(frm))
-    logoutButton.grid(column=0, row=len(labels) + 4, sticky='w', pady=10)
+    logoutButton.grid(column=0, row=len(labels) + 6, sticky='w', pady=10)
 
     root.mainloop()
 
