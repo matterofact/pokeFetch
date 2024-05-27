@@ -190,15 +190,6 @@ def partiesWindow(root, frm, user_id, pokeName):
     parties = c.fetchall()
 
 
-    # I've moved these buttons to the top of the list, because when there is an invalid entry in a party, you get stuck on the parties page unless
-    # the buttons are at the top
-    new_party_button = ttk.Button(frm, text="New party", command=lambda: createParty(root, frm, user_id, pokeName))
-    new_party_button.pack()
-
-    # Back button to go back to the parties window
-    back_button = ttk.Button(frm, text='Back', command=lambda: summaryWindow(pokeName, root, frm, user_id))
-    back_button.pack()
-
     # I had to change this section of the code because chatgpt was assigning party_id to the user_id column instead
     # I've changed the tuple index to 1 from 0, so it now assigns the correct party id to the party when it's deleted
     # This means the function now works correctly and removes the delete party from the database
@@ -207,7 +198,6 @@ def partiesWindow(root, frm, user_id, pokeName):
     for i, party in enumerate(parties):
         party_id = party[1]
         party_contents = [party[2:] for party in parties]
-        print(party[8])
         if party[8] == None:
             party = ttk.Label(frm, text='Party ' + str(i+1))
         else:
@@ -219,6 +209,19 @@ def partiesWindow(root, frm, user_id, pokeName):
 
         delete_button = ttk.Button(frm, text='Delete Party', command=lambda party_id=party_id: delete_party(party_id, root, frm, user_id, pokeName))
         delete_button.pack(pady=10)
+
+    # Blank label to buffer
+    blankLabel = ttk.Label(frm, text='')
+    blankLabel.pack()
+    blankLabel2 = ttk.Label(frm, text='')
+    blankLabel2.pack()
+    # New party button to add a new party 
+    new_party_button = ttk.Button(frm, text="New party", command=lambda: createParty(root, frm, user_id, pokeName))
+    new_party_button.pack()
+
+    # Back button to go back to the parties window
+    back_button = ttk.Button(frm, text='Back', command=lambda: summaryWindow(pokeName, root, frm, user_id))
+    back_button.pack()
         
 
 # I used ChatGPT to quickly create the code for this funciton since it's quite similar to the pokemon summary window.
@@ -232,9 +235,7 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
 
     root.title("Party Summary")
 
-    # Back button to go back to the parties window, moved to the top for the same reasons as stated in the partiesWindow comments
-    back_button = ttk.Button(frm, text='Back', command=lambda: partiesWindow(root, frm, user_id, pokeName))
-    back_button.grid(column=0, row=len(party) + 1, columnspan=2, pady=10)
+
 
     # Create a new frame for the party summary
     summary_frame = ttk.Frame(frm, padding=10)
@@ -265,6 +266,10 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
 
             delete_button = ttk.Button(summary_frame, text="Delete from party", command=lambda partyPos=partyPos: remove_from_party(root, frm, user_id, party_id, party, pokeName, partyPos))
             delete_button.grid(column=3, row=i, padx=5, pady=5)
+
+            # Back button to go back to the parties window, moved to the top for the same reasons as stated in the partiesWindow comments
+    back_button = ttk.Button(frm, text='Back', command=lambda: partiesWindow(root, frm, user_id, pokeName))
+    back_button.grid(column=0, row=len(party) + 1, columnspan=2, pady=10)
             
 
 # There is a pause when the party summary is reloaded. And it doesn't load the deletion until after backing out to the parties screen and back
