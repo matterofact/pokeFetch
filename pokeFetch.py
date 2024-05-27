@@ -51,6 +51,15 @@ def createParty(root, frm, user_id, pokeName):
     # List to store entry widgets
     entry_widgets = []
 
+    # Create entry widget for party name
+    party_name_label = tk.Label(frm, text="Party Name:", font=('', 15))
+    party_name_label.pack(pady=5)
+
+    party_name_entry = ttk.Entry(frm, font=('', 15))
+    party_name_entry.pack(pady=5)
+
+    entry_widgets.append(party_name_entry)
+
     # Create entry widgets for Pokémon party members
     for i in range(1, 7):
         party_member_label = tk.Label(frm, text="Pokemon " + str(i) + ":", font=('', 15))
@@ -89,8 +98,8 @@ def submitParty(entry_widgets, user_id, root, frm, pokeName):
 
 def insert_party_into_db(user_id, party_data, root, frm, pokeName):
     c.execute('''
-        INSERT INTO parties (user_id, pokemon1, pokemon2, pokemon3, pokemon4, pokemon5, pokemon6)
-        VALUES (?, ? ,?, ?, ?, ?, ?)
+        INSERT INTO parties (user_id, party_name, pokemon1, pokemon2, pokemon3, pokemon4, pokemon5, pokemon6)
+        VALUES (?, ?, ? ,?, ?, ?, ?, ?)
     ''', (user_id, *party_data))
     db.commit()
 
@@ -198,7 +207,11 @@ def partiesWindow(root, frm, user_id, pokeName):
     for i, party in enumerate(parties):
         party_id = party[1]
         party_contents = [party[2:] for party in parties]
-        party = ttk.Label(frm, text='Party ' + str(i+1))
+        print(party[8])
+        if party[8] == None:
+            party = ttk.Label(frm, text='Party ' + str(i+1))
+        else:
+            party = ttk.Label(frm, text=party[8])
         party.pack(pady=10)
         # Button to view detailed summary of the first party for demonstration
         summary_button = ttk.Button(frm, text='View Party Summary', command=lambda i=i: partySummaryWindow(root, frm, user_id, party_id, parties[i][2:], pokeName))
