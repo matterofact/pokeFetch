@@ -18,6 +18,8 @@
 
 * TODO - At the bottom of the page is a visual that displays type coverage for the selected party, and displays weaknesses using red, grey, and green to indicate coverage. 
 
-* Users can delete whole parties, or also delete individual Pokemon from a given party using buttons in the GUI. This will remove the specific party from the SQL database, and from the list of parties in the users’ party page.  
+* Users can delete whole parties, or also delete individual Pokemon from a given party using buttons in the GUI. This will remove the specific party from the SQL database, and from the list of parties in the users’ party page.
+
+* I used ChatGPT to quickly generate tedious aspects of the code, e.g refactoring my original summary page code to use a loop to make it more concise, as well as input sanitisation for user registration and party deletion. Often there were small bugs with this code and I had to fix these manually, but it made generating large chunks of code much quicker!
 
 * TODO - On the parties page, users can check type coverage to see if their parties have weaknesses against certain types of pokemon in battle, and can use these stats to try and improve their teams. 
