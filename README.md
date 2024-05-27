@@ -12,7 +12,7 @@
 
 * To implement a GUI environment, I’ve used the tkinter Python library, which allows for the creation of a GUI window with widgets and labels to create a user interface.  
 
-*I have implemented a login screen so the program can keep track of which user id they should be pulling parties from. New users can register their login, which will insert them into the SQL database in the users table. 
+* I have implemented a login screen so the program can keep track of which user id they should be pulling parties from. New users can register their login, which will insert them into the SQL database in the users table. 
 
 * Once the user logs in, they are presented with the information of the first Pokemon in the Pokedex – Bulbasaur – and they can then search for other Pokemon using the search box at the bottom of the screen or access a list of their parties by clicking the ‘Parties’ button below the search box. The user also has the option to scroll through the Pokedex in incrementing Pokedex ID order using next and previous buttons. For example, if you clicked the ‘next’ page from the Bulbasaur page, you would see Ivysaur’s page, and if you click ‘previous’ from Bulbasaur’s page, the list wraps around to the final Pokemon in the Pokedex at time of writing – Pecharunt. 
 
