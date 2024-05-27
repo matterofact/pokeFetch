@@ -360,16 +360,16 @@ def summaryWindow(search, root, frm, user_id):
     abilities = ', '.join([a[0].title() for a in pokemon.abilities])
 
 
-    # Logic to make sure previous and next buttons don't work when at the start of end of the pokedex list
+    # Logic to make sure previous and next buttons wrap round to the last or first entry when reaching the start or end of the pokedex
     if pokemon.dex < 1025:
         next_pokemon = pypokedex.get(dex=pokemon.dex+1)
     else:
-        next_pokemon = pypokedex.get(dex=1025)
+        next_pokemon = pypokedex.get(dex=1)
     
     if pokemon.dex > 1: 
         prev_pokemon = pypokedex.get(dex=pokemon.dex-1)
     else:
-        prev_pokemon = pypokedex.get(dex=1)
+        prev_pokemon = pypokedex.get(dex=1025)
 
     # Creating widgets - I used ChatGPT for this so the layout is created using a loop, which is more concise than laying each element out 
     # individually
