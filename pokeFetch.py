@@ -250,7 +250,7 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
             types_label.grid(column=2, row=i, padx=5, pady=5)
 
             delete_button = ttk.Button(summary_frame, text="Delete from party", command=lambda partyPos=partyPos: remove_from_party(root, frm, user_id, party_id, party, pokeName, partyPos))
-            delete_button.grid(column=3, row=i, padx=7, pady=5)
+            delete_button.grid(column=3, row=i, padx=5, pady=5)
             
 
 # There is a pause when the party summary is reloaded. And it doesn't load the deletion until after backing out to the parties screen and back
@@ -405,6 +405,8 @@ def summaryWindow(search, root, frm, user_id):
 
     # Adding a blank label to create a gap
     blankLabel = tk.Label(frm, text="")
+    blankLabel2 = tk.Label(frm, text="")
+    blankLabel3 = tk.Label(frm, text="")
     blankLabel.grid(column=0, row=len(labels) + 1, pady=10)
 
     next_button = ttk.Button(frm, text="Next", command=lambda: summaryWindow(next_pokemon.name, root, frm, user_id))
@@ -417,14 +419,15 @@ def summaryWindow(search, root, frm, user_id):
 
     prev_button.grid(column=0, row=len(labels) + 2, sticky='w', padx=5)
     next_button.grid(column=1, row=len(labels) + 2, sticky='w', padx=5)
-    blankLabel.grid(column=0, row=len(labels) + 3, sticky='w', padx=5)
+    blankLabel2.grid(column=0, row=len(labels) + 3, sticky='w', padx=5, pady=5)
     search_label.grid(column=0, row=len(labels) + 4, sticky='w', padx=5)
     searchBox.grid(column=1, row=len(labels) + 4, sticky='w', padx=5)
     searchButton.grid(column=2, row=len(labels) + 4, sticky='w', padx=5)
-    partiesButton.grid(column=0, row=len(labels) + 5, sticky='w', pady=10)
+    blankLabel3.grid(column=0, row=len(labels) + 5, sticky='w', padx=5, pady=5)
+    partiesButton.grid(column=0, row=len(labels) + 6, sticky='w', pady=10)
 
     logoutButton = ttk.Button(frm, text='Log Out', command=lambda: loginWindow(frm))
-    logoutButton.grid(column=0, row=len(labels) + 6, sticky='w', pady=10)
+    logoutButton.grid(column=0, row=len(labels) + 7, sticky='w', pady=10)
 
     root.mainloop()
 
