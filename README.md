@@ -1,10 +1,6 @@
-# pokeFetch
+# pokeFetch: An interactive GUI pokedex app written in Python 
 
-#### Video Demo: <URL HERE>
-
-
-
-# pokeFetch: An interactive GUI pokedex app written in python with the tkinter framework	 
+### Video Demo: <URL HERE>
 
 ### Description:
 
