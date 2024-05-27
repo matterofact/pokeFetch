@@ -236,6 +236,7 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
             response = requests.get(sprite_url)
             sprite_image = PIL.Image.open(BytesIO(response.content))
             sprite_photo = ImageTk.PhotoImage(sprite_image)
+            poke_types = ', '.join([t.title() for t in pokemon.types])
 
             name_label = ttk.Label(summary_frame, text=poke_name, font=('', 15))
             name_label.grid(column=0, row=i, padx=5, pady=5, sticky='w')
@@ -245,8 +246,11 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
             sprite_label.image = sprite_photo  # Keep a reference to avoid garbage collection
             sprite_label.grid(column=1, row=i, padx=5, pady=5)
 
+            types_label = ttk.Label(summary_frame, text=poke_types, font=('', 15))
+            types_label.grid(column=2, row=i, padx=5, pady=5)
+
             delete_button = ttk.Button(summary_frame, text="Delete from party", command=lambda partyPos=partyPos: remove_from_party(root, frm, user_id, party_id, party, pokeName, partyPos))
-            delete_button.grid(column=2, row=i, padx=5, pady=5)
+            delete_button.grid(column=3, row=i, padx=7, pady=5)
             
 
 # There is a pause when the party summary is reloaded. And it doesn't load the deletion until after backing out to the parties screen and back
@@ -404,7 +408,7 @@ def summaryWindow(search, root, frm, user_id):
     pokeSearch = tk.StringVar()
     searchBox = ttk.Entry(frm, textvariable=pokeSearch, font=('', 15))
     searchButton = ttk.Button(frm, text="Search", command=lambda: clear_window(root, frm, pokeSearch.get(), user_id))
-    partiesButton = ttk.Button(frm, text="Parties", command=lambda: summaryWindow(root, frm, user_id, pokeName))
+    partiesButton = ttk.Button(frm, text="Parties", command=lambda: partiesWindow(root, frm, user_id, pokeName))
 
     prev_button.grid(column=0, row=len(labels) + 2, sticky='w', padx=5)
     next_button.grid(column=1, row=len(labels) + 2, sticky='w', padx=5)
