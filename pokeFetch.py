@@ -27,6 +27,65 @@ from pypokedex import exceptions
 db = sqlite3.connect("pokeFetch.db")
 c = db.cursor()
 
+# I used ChatGPT to quickly generate a dictionary of all the pokemon types and their effectiveness ratings
+type_effectiveness = {
+    'normal': {
+        'rock': 0.5, 'ghost': 0, 'steel': 0.5,
+    },
+    'fire': {
+        'fire': 0.5, 'water': 0.5, 'grass': 2, 'ice': 2, 'bug': 2, 'rock': 0.5, 'dragon': 0.5, 'steel': 2,
+    },
+    'water': {
+        'fire': 2, 'water': 0.5, 'grass': 0.5, 'ground': 2, 'rock': 2, 'dragon': 0.5,
+    },
+    'electric': {
+        'water': 2, 'electric': 0.5, 'grass': 0.5, 'ground': 0, 'flying': 2, 'dragon': 0.5,
+    },
+    'grass': {
+        'fire': 0.5, 'water': 2, 'grass': 0.5, 'poison': 0.5, 'ground': 2, 'flying': 0.5, 'bug': 0.5, 'rock': 2, 'dragon': 0.5, 'steel': 0.5,
+    },
+    'ice': {
+        'fire': 0.5, 'water': 0.5, 'grass': 2, 'ice': 0.5, 'ground': 2, 'flying': 2, 'dragon': 2, 'steel': 0.5,
+    },
+    'fighting': {
+        'normal': 2, 'ice': 2, 'poison': 0.5, 'flying': 0.5, 'psychic': 0.5, 'bug': 0.5, 'rock': 2, 'ghost': 0, 'dark': 2, 'steel': 2, 'fairy': 0.5,
+    },
+    'poison': {
+        'grass': 2, 'poison': 0.5, 'ground': 0.5, 'rock': 0.5, 'ghost': 0.5, 'steel': 0, 'fairy': 2,
+    },
+    'ground': {
+        'fire': 2, 'electric': 2, 'grass': 0.5, 'poison': 2, 'flying': 0, 'bug': 0.5, 'rock': 2, 'steel': 2,
+    },
+    'flying': {
+        'electric': 0.5, 'grass': 2, 'fighting': 2, 'bug': 2, 'rock': 0.5, 'steel': 0.5,
+    },
+    'psychic': {
+        'fighting': 2, 'poison': 2, 'psychic': 0.5, 'dark': 0, 'steel': 0.5,
+    },
+    'bug': {
+        'fire': 0.5, 'grass': 2, 'fighting': 0.5, 'poison': 0.5, 'flying': 0.5, 'psychic': 2, 'ghost': 0.5, 'dark': 2, 'steel': 0.5, 'fairy': 0.5,
+    },
+    'rock': {
+        'fire': 2, 'ice': 2, 'fighting': 0.5, 'ground': 0.5, 'flying': 2, 'bug': 2, 'steel': 0.5,
+    },
+    'ghost': {
+        'normal': 0, 'psychic': 2, 'ghost': 2, 'dark': 0.5,
+    },
+    'dragon': {
+        'dragon': 2, 'steel': 0.5, 'fairy': 0,
+    },
+    'dark': {
+        'fighting': 0.5, 'psychic': 2, 'ghost': 2, 'dark': 0.5, 'fairy': 0.5,
+    },
+    'steel': {
+        'fire': 0.5, 'water': 0.5, 'electric': 0.5, 'ice': 2, 'rock': 2, 'steel': 0.5, 'fairy': 2,
+    },
+    'fairy': {
+        'fire': 0.5, 'fighting': 2, 'poison': 0.5, 'dragon': 2, 'dark': 2, 'steel': 0.5,
+    },
+}
+
+
 
 def clear_window(root, frm, search, user_id):
     try: 
@@ -42,7 +101,7 @@ def clear_window(root, frm, search, user_id):
 # then be passed to the submit party function to be entered into the database
 
 def createParty(root, frm, user_id, pokeName):
-    # TODO Need to allow for looping submission of pokemon into a party, and then insert into the parties database
+    # Looping submission of pokemon into a party, and then insert into the parties database
 
     # Clear the frame
     for widget in frm.winfo_children():
@@ -90,7 +149,8 @@ def submitParty(entry_widgets, user_id, root, frm, pokeName):
     # This function was written by chatgpt to allow for keeping track of which names are being submitted into the parties database to make
     # it easier to debug database input before running the insert_party_into_db function and insert them into the database itself
     print("Collected Party Data:")
-    for i, pokemon in enumerate(party_data, start=1):
+    print(f"Party name: {party_data[0]}")
+    for i, pokemon in enumerate(party_data[1:], start=1):
         print(f"Pokemon {i}: {pokemon}")
     
     # Insert the data into the database
@@ -113,6 +173,29 @@ def hash_password(plain_text_password):
 
 def check_password(plain_text_password, hashed_password):
     return bcrypt.checkpw(plain_text_password, hashed_password)
+
+def loginWindow(frm):
+    frm.destroy()
+    root.title("Login")
+    frm = ttk.Frame(root, padding=10)
+    frm.pack()
+
+    username_label = tk.Label(frm, text="Username: ")
+    username_label.pack()
+    username_entry = ttk.Entry(frm, font=('',15))
+    username_entry.pack()
+
+    password_label = tk.Label(frm, text="Password: ")
+    password_label.pack()
+    password_entry = ttk.Entry(frm, font=('',15), show='*')
+    password_entry.pack()
+
+    loginButton = ttk.Button(frm, text="Login", command=lambda: login(username_entry.get(), password_entry.get(), root, frm))
+    loginButton.pack(pady=20)
+
+    registerButton = ttk.Button(frm, text="Register", command=lambda: registerWindow(root, frm))
+    registerButton.pack()
+    root.mainloop()
 
 def login(u, p, root, frm):
     user = c.execute(
@@ -145,38 +228,6 @@ def login(u, p, root, frm):
         messagebox.showerror("Login Failed", "Invalid username or password.")
         loginWindow(frm)
 
-def loginWindow(frm):
-    frm.destroy()
-    root.title("Login")
-    frm = ttk.Frame(root, padding=10)
-    frm.pack()
-
-    username_label = tk.Label(frm, text="Username: ")
-    username_label.pack()
-    username_entry = ttk.Entry(frm, font=('',15))
-    username_entry.pack()
-
-    password_label = tk.Label(frm, text="Password: ")
-    password_label.pack()
-    password_entry = ttk.Entry(frm, font=('',15), show='*')
-    password_entry.pack()
-
-    loginButton = ttk.Button(frm, text="Login", command=lambda: login(username_entry.get(), password_entry.get(), root, frm))
-    loginButton.pack(pady=20)
-
-    registerButton = ttk.Button(frm, text="Register", command=lambda: registerWindow(root, frm))
-    registerButton.pack()
-    root.mainloop()
-
-def delete_party(party_id, root, frm, user_id, pokeName):
-    try:
-        c.execute("DELETE FROM parties WHERE party_id = ? AND user_id = ?", (party_id, user_id))
-        db.commit()
-        messagebox.showinfo("Success", "Party deleted successfully!")
-    except sqlite3.Error as e:
-        messagebox.showerror("Error", f"An error occurred: {e}")
-    finally:
-        partiesWindow(root, frm, user_id, pokeName)
   
 def partiesWindow(root, frm, user_id, pokeName):
     root.title("Parties")
@@ -222,7 +273,16 @@ def partiesWindow(root, frm, user_id, pokeName):
     # Back button to go back to the parties window
     back_button = ttk.Button(frm, text='Back', command=lambda: summaryWindow(pokeName, root, frm, user_id))
     back_button.pack()
-        
+
+def delete_party(party_id, root, frm, user_id, pokeName):
+    try:
+        c.execute("DELETE FROM parties WHERE party_id = ? AND user_id = ?", (party_id, user_id))
+        db.commit()
+        messagebox.showinfo("Success", "Party deleted successfully!")
+    except sqlite3.Error as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+    finally:
+        partiesWindow(root, frm, user_id, pokeName)   
 
 # I used ChatGPT to quickly create the code for this funciton since it's quite similar to the pokemon summary window.
 # There was a bug initially in that code that wouldn't delete parties correctly, so I went through and tweaked how the buttons had their 
@@ -234,15 +294,16 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
         widget.destroy()
 
     root.title("Party Summary")
+    print(party[:6])
 
-
+    type_coverage = get_type_coverage(party[:6])
 
     # Create a new frame for the party summary
     summary_frame = ttk.Frame(frm, padding=10)
     summary_frame.grid()
 
     # Fetch and display each Pokémon's sprite and name
-    for i, pokemon_name in enumerate(party):
+    for i, pokemon_name in enumerate(party[:6]):
         if pokemon_name:
             partyPos = i
             pokemon = pypokedex.get(name=str(pokemon_name).lower())
@@ -266,11 +327,96 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
 
             delete_button = ttk.Button(summary_frame, text="Delete from party", command=lambda partyPos=partyPos: remove_from_party(root, frm, user_id, party_id, party, pokeName, partyPos))
             delete_button.grid(column=3, row=i, padx=5, pady=5)
+    
+    strengths = []
+    weaknesses = []
+    resistances = []
+    immunities = []
 
-            # Back button to go back to the parties window, moved to the top for the same reasons as stated in the partiesWindow comments
+    # Strengths list generation
+    for t, count in type_coverage['strengths'].items():
+        strengths.append((f"{t.title()}: {count}"))
+    print(strengths)
+
+    # Weaknesses list generation
+    for t, count in type_coverage['weaknesses'].items():
+        weaknesses.append((f"{t.title()}: {count}"))
+    print(weaknesses)
+
+    # Resistances list generation
+    for t, count in type_coverage['resistances'].items():
+        resistances.append((f"{t.title()}: {count}"))
+    print(resistances)
+
+    # Immunities list generation
+    for t, count in type_coverage['immunities'].items():
+        immunities.append((f"{t.title()}: {count}"))
+    print(immunities)
+
+    type_coverage_label = ttk.Label(frm, text=" Party Type Coverage: ", font=('', 15))
+    type_coverage_label.grid(column=0, row=len(party) + 1, columnspan=2, pady=10)
+    if strengths == None:
+        strengths_label = strengths_label = ttk.Label(frm, text="Strengths: None") 
+    else:
+        strengths_label = ttk.Label(frm, text="Strengths: " + str(strengths))
+    strengths_label.grid(column=0, row = len(party) + 2, columnspan=1, pady=10)
+    if weaknesses == None:
+        weaknesses_label = ttk.Label(frm, text="Weaknesses: None")
+    else:
+        weaknesses_label = ttk.Label(frm, text="Weaknesses: " + str(weaknesses))
+    weaknesses_label.grid(column=0, row = len(party) + 3, columnspan=2, pady=10)
+    if resistances == None:
+        resistances_label = ttk.Label(frm, text="Resistances: None")
+    else:
+        resistances_label = ttk.Label(frm, text="Resistances: " + str(resistances))
+    resistances_label.grid(column=0, row = len(party) + 4, columnspan=2, pady=10)
+    if immunities == None:
+        immunities_label = ttk.Label(frm, text="Immunities: None")
+    else:
+        immunities_label = ttk.Label(frm, text="Immunities: " + str(immunities)) 
+    immunities_label.grid(column=0, row = len(party) + 5, columnspan=2, pady=10)
+
+
+    
+    # Back button to go back to the parties window, moved to the top for the same reasons as stated in the partiesWindow comments
     back_button = ttk.Button(frm, text='Back', command=lambda: partiesWindow(root, frm, user_id, pokeName))
-    back_button.grid(column=0, row=len(party) + 1, columnspan=2, pady=10)
+    back_button.grid(column=0, row=len(party) + 6, columnspan=2, pady=10)
             
+def get_type_coverage(party):
+    type_coverage = {
+        'strengths': {},
+        'weaknesses': {},
+        'resistances': {},
+        'immunities': {}
+    }
+
+    for pokemon_name in party:
+        if pokemon_name:
+            pokemon = pypokedex.get(name=pokemon_name.lower())
+            for poke_type in pokemon.types:
+                for target_type, effectiveness in type_effectiveness[poke_type].items():
+                    if effectiveness == 2:
+                        if target_type in type_coverage['strengths']:
+                            type_coverage['strengths'][target_type] += 1
+                        else:
+                            type_coverage['strengths'][target_type] = 1
+                    elif effectiveness == 0.5:
+                        if target_type in type_coverage['resistances']:
+                            type_coverage['resistances'][target_type] += 1
+                        else:
+                            type_coverage['resistances'][target_type] = 1
+                    elif effectiveness == 0:
+                        if target_type in type_coverage['immunities']:
+                            type_coverage['immunities'][target_type] += 1
+                        else:
+                            type_coverage['immunities'][target_type] = 1
+                    elif effectiveness == 1:
+                        if target_type in type_coverage['weaknesses']:
+                            type_coverage['weaknesses'][target_type] += 1
+                        else:
+                            type_coverage['weaknesses'][target_type] = 1
+
+    return type_coverage
 
 # There is a pause when the party summary is reloaded. And it doesn't load the deletion until after backing out to the parties screen and back
 # into partySummaryWindow
