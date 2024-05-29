@@ -343,39 +343,51 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
         weaknesses.append((f"{t.title()}: {count}"))
     print(weaknesses)
 
-    # Resistances list generation
-    for t, count in type_coverage['resistances'].items():
-        resistances.append((f"{t.title()}: {count}"))
-    print(resistances)
-
     # Immunities list generation
     for t, count in type_coverage['immunities'].items():
         immunities.append((f"{t.title()}: {count}"))
     print(immunities)
 
-    type_coverage_label = ttk.Label(frm, text=" Party Type Coverage: ", font=('', 15))
-    type_coverage_label.grid(column=0, row=len(party) + 1, columnspan=2, pady=10)
-    if strengths == None:
-        strengths_label = strengths_label = ttk.Label(frm, text="Strengths: None") 
-    else:
-        strengths_label = ttk.Label(frm, text="Strengths: " + str(strengths))
-    strengths_label.grid(column=0, row = len(party) + 2, columnspan=1, pady=10)
-    if weaknesses == None:
-        weaknesses_label = ttk.Label(frm, text="Weaknesses: None")
-    else:
-        weaknesses_label = ttk.Label(frm, text="Weaknesses: " + str(weaknesses))
-    weaknesses_label.grid(column=0, row = len(party) + 3, columnspan=2, pady=10)
-    if resistances == None:
-        resistances_label = ttk.Label(frm, text="Resistances: None")
-    else:
-        resistances_label = ttk.Label(frm, text="Resistances: " + str(resistances))
-    resistances_label.grid(column=0, row = len(party) + 4, columnspan=2, pady=10)
-    if immunities == None:
-        immunities_label = ttk.Label(frm, text="Immunities: None")
-    else:
-        immunities_label = ttk.Label(frm, text="Immunities: " + str(immunities)) 
-    immunities_label.grid(column=0, row = len(party) + 5, columnspan=2, pady=10)
+       # Create a label for type coverage
+    type_coverage_label = ttk.Label(frm, text="Party Type Coverage:", font=('', 15))
+    type_coverage_label.grid(column=0, row=len(party) + 1, columnspan=4, pady=10)
 
+    # Create a frame for the table
+    table_frame = ttk.Frame(frm)
+    table_frame.grid(column=0, row=len(party) + 2, columnspan=4, pady=10)
+
+    # Column headers
+    headers = ["Type", "Strengths", "Weaknesses", "Immunities"]
+    for col, header in enumerate(headers):
+        header_label = ttk.Label(table_frame, text=header, font=('', 12, 'bold'))
+        header_label.grid(row=0, column=col, padx=5, pady=5)
+
+    # Maximum number of rows for the table
+    max_rows = max(len(strengths), len(weaknesses), len(immunities))
+
+    # Fill in the table
+    for row in range(max_rows):
+        if row < len(strengths):
+            strength_label = ttk.Label(table_frame, text=strengths[row])
+            strength_label.grid(row=row + 1, column=1, padx=5, pady=5)
+        else:
+            strength_label = ttk.Label(table_frame, text="")
+            strength_label.grid(row=row + 1, column=1, padx=5, pady=5)
+
+        if row < len(weaknesses):
+            weakness_label = ttk.Label(table_frame, text=weaknesses[row])
+            weakness_label.grid(row=row + 1, column=2, padx=5, pady=5)
+        else:
+            weakness_label = ttk.Label(table_frame, text="")
+            weakness_label.grid(row=row + 1, column=2, padx=5, pady=5)
+
+
+        if row < len(immunities):
+            immunity_label = ttk.Label(table_frame, text=immunities[row])
+            immunity_label.grid(row=row + 1, column=4, padx=5, pady=5)
+        else:
+            immunity_label = ttk.Label(table_frame, text="")
+            immunity_label.grid(row=row + 1, column=4, padx=5, pady=5)
 
     
     # Back button to go back to the parties window, moved to the top for the same reasons as stated in the partiesWindow comments
@@ -386,35 +398,34 @@ def get_type_coverage(party):
     type_coverage = {
         'strengths': {},
         'weaknesses': {},
-        'resistances': {},
         'immunities': {}
     }
+
+
+    # At the moment it checks every type in every pokemon, but I need it to check if you have any pokemon to can be used against a certain type
+    # I need to get it to skip the incrementation of the count if it's already been incremented for the current pokemon
 
     for pokemon_name in party:
         if pokemon_name:
             pokemon = pypokedex.get(name=pokemon_name.lower())
-            for poke_type in pokemon.types:
-                for target_type, effectiveness in type_effectiveness[poke_type].items():
+            for types in pokemon.types:
+                for target_type, effectiveness in type_effectiveness[types].items():
                     if effectiveness == 2:
                         if target_type in type_coverage['strengths']:
                             type_coverage['strengths'][target_type] += 1
                         else:
                             type_coverage['strengths'][target_type] = 1
                     elif effectiveness == 0.5:
-                        if target_type in type_coverage['resistances']:
-                            type_coverage['resistances'][target_type] += 1
+                        if target_type in type_coverage['weaknesses']:
+                            type_coverage['weaknesses'][target_type] += 1
                         else:
-                            type_coverage['resistances'][target_type] = 1
+                            type_coverage['weaknesses'][target_type] = 1
                     elif effectiveness == 0:
                         if target_type in type_coverage['immunities']:
                             type_coverage['immunities'][target_type] += 1
                         else:
                             type_coverage['immunities'][target_type] = 1
-                    elif effectiveness == 1:
-                        if target_type in type_coverage['weaknesses']:
-                            type_coverage['weaknesses'][target_type] += 1
-                        else:
-                            type_coverage['weaknesses'][target_type] = 1
+
 
     return type_coverage
 
