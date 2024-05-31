@@ -294,13 +294,12 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
         widget.destroy()
 
     root.title("Party Summary")
-    print(party[:6])
 
     type_coverage = get_type_coverage(party[:6])
 
     # Create a new frame for the party summary
-    summary_frame = ttk.Frame(frm, padding=10)
-    summary_frame.grid()
+    summary_frame = ttk.Frame(frm)
+    summary_frame.grid(column=0, rowspan=10, padx=20)
 
     # Fetch and display each Pokémon's sprite and name
     for i, pokemon_name in enumerate(party[:6]):
@@ -330,34 +329,34 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
     
     strengths = []
     weaknesses = []
-    resistances = []
     immunities = []
 
     # Strengths list generation
     for t, count in type_coverage['strengths'].items():
         strengths.append((f"{t.title()}: {count}"))
-    print(strengths)
+ 
 
     # Weaknesses list generation
     for t, count in type_coverage['weaknesses'].items():
         weaknesses.append((f"{t.title()}: {count}"))
-    print(weaknesses)
+
 
     # Immunities list generation
     for t, count in type_coverage['immunities'].items():
         immunities.append((f"{t.title()}: {count}"))
-    print(immunities)
 
-       # Create a label for type coverage
-    type_coverage_label = ttk.Label(frm, text="Party Type Coverage:", font=('', 15))
-    type_coverage_label.grid(column=0, row=len(party) + 1, columnspan=4, pady=10)
+
 
     # Create a frame for the table
     table_frame = ttk.Frame(frm)
-    table_frame.grid(column=0, row=len(party) + 2, columnspan=4, pady=10)
+    table_frame.grid(column=1, row=1)
+
+    # Create a label for type coverage
+    type_coverage_label = ttk.Label(frm, text="Party Type Coverage:", font=('', 15))
+    type_coverage_label.grid(column=1, row=0) 
 
     # Column headers
-    headers = ["Type", "Strengths", "Weaknesses", "Immunities"]
+    headers = ["Strengths", "Weaknesses", "Immunities"]
     for col, header in enumerate(headers):
         header_label = ttk.Label(table_frame, text=header, font=('', 12, 'bold'))
         header_label.grid(row=0, column=col, padx=5, pady=5)
@@ -369,30 +368,30 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
     for row in range(max_rows):
         if row < len(strengths):
             strength_label = ttk.Label(table_frame, text=strengths[row])
-            strength_label.grid(row=row + 1, column=1, padx=5, pady=5)
+            strength_label.grid(row=row + 1, column=0, padx=5, pady=5)
         else:
             strength_label = ttk.Label(table_frame, text="")
-            strength_label.grid(row=row + 1, column=1, padx=5, pady=5)
+            strength_label.grid(row=row + 1, column=0, padx=5, pady=5)
 
         if row < len(weaknesses):
             weakness_label = ttk.Label(table_frame, text=weaknesses[row])
-            weakness_label.grid(row=row + 1, column=2, padx=5, pady=5)
+            weakness_label.grid(row=row + 1, column=1, padx=5, pady=5)
         else:
             weakness_label = ttk.Label(table_frame, text="")
-            weakness_label.grid(row=row + 1, column=2, padx=5, pady=5)
+            weakness_label.grid(row=row + 1, column=1, padx=5, pady=5)
 
 
         if row < len(immunities):
             immunity_label = ttk.Label(table_frame, text=immunities[row])
-            immunity_label.grid(row=row + 1, column=4, padx=5, pady=5)
+            immunity_label.grid(row=row + 1, column=2, padx=5, pady=5)
         else:
             immunity_label = ttk.Label(table_frame, text="")
-            immunity_label.grid(row=row + 1, column=4, padx=5, pady=5)
+            immunity_label.grid(row=row + 1, column=2, padx=5, pady=5)
 
     
     # Back button to go back to the parties window, moved to the top for the same reasons as stated in the partiesWindow comments
     back_button = ttk.Button(frm, text='Back', command=lambda: partiesWindow(root, frm, user_id, pokeName))
-    back_button.grid(column=0, row=len(party) + 6, columnspan=2, pady=10)
+    back_button.grid(column=0, row=len(party) + 6, pady=10)
             
 def get_type_coverage(party):
     type_coverage = {
@@ -401,15 +400,16 @@ def get_type_coverage(party):
         'immunities': {}
     }
 
-
-    # At the moment it checks every type in every pokemon, but I need it to check if you have any pokemon to can be used against a certain type
-    # I need to get it to skip the incrementation of the count if it's already been incremented for the current pokemon
-
     for pokemon_name in party:
         if pokemon_name:
             pokemon = pypokedex.get(name=pokemon_name.lower())
+            counted_types = set()  # To track types already counted for this pokemon
+
             for types in pokemon.types:
                 for target_type, effectiveness in type_effectiveness[types].items():
+                    if target_type in counted_types:
+                        continue  # Skip if this type has already been counted for this pokemon
+
                     if effectiveness == 2:
                         if target_type in type_coverage['strengths']:
                             type_coverage['strengths'][target_type] += 1
@@ -425,9 +425,11 @@ def get_type_coverage(party):
                             type_coverage['immunities'][target_type] += 1
                         else:
                             type_coverage['immunities'][target_type] = 1
-
+                    
+                    counted_types.add(target_type)  # Mark this type as counted for this pokemon
 
     return type_coverage
+
 
 # There is a pause when the party summary is reloaded. And it doesn't load the deletion until after backing out to the parties screen and back
 # into partySummaryWindow
@@ -600,6 +602,6 @@ def summaryWindow(search, root, frm, user_id):
     root.mainloop()
 
 root = Tk()
-root.geometry("525x750")
+root.geometry("850x750")
 frm = ttk.Frame(root, padding=10)
 loginWindow(frm)
