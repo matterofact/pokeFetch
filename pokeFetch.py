@@ -136,6 +136,14 @@ def createParty(root, frm, user_id, pokeName):
 
 def submitParty(entry_widgets, user_id, root, frm, pokeName):
     # Collect the values from the entry widgets
+    for entry in (entry_widgets):
+        try: 
+            pypokedex.get(name=entry.get()) 
+        except pypokedex.exceptions.PyPokedexError as err:
+            if err:
+                messagebox.showerror("Failed to create party", "Invalid pokemon name in party.")
+                return
+                
     party_data = [entry.get() for entry in entry_widgets]
 
  #   for pokemon in party_data:
@@ -282,7 +290,7 @@ def delete_party(party_id, root, frm, user_id, pokeName):
     except sqlite3.Error as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
     finally:
-        partiesWindow(root, frm, user_id, pokeName)   
+        partiesWindow(root, frm, user_id, pokeName) 
 
 # I used ChatGPT to quickly create the code for this funciton since it's quite similar to the pokemon summary window.
 # There was a bug initially in that code that wouldn't delete parties correctly, so I went through and tweaked how the buttons had their 
@@ -387,8 +395,8 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
         else:
             immunity_label = ttk.Label(table_frame, text="")
             immunity_label.grid(row=row + 1, column=2, padx=5, pady=5)
+ 
 
-    
     # Back button to go back to the parties window, moved to the top for the same reasons as stated in the partiesWindow comments
     back_button = ttk.Button(frm, text='Back', command=lambda: partiesWindow(root, frm, user_id, pokeName))
     back_button.grid(column=0, row=len(party) + 6, pady=10)
@@ -443,7 +451,11 @@ def remove_from_party(root, frm, user_id, party_id, party, pokeName, index):
     except sqlite3.Error as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
     finally:
-        partySummaryWindow(root, frm, user_id, party_id, party, pokeName) 
+        party = c.execute(
+            "SELECT * FROM parties WHERE user_id = ? AND party_id = ?", [user_id, party_id]
+        )
+        party = c.fetchall()
+        partySummaryWindow(root, frm, user_id, party_id, party[0][2:], pokeName) 
 
 def registerWindow(root, frm):
 
