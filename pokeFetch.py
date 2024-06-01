@@ -134,6 +134,11 @@ def createParty(root, frm, user_id, pokeName):
     submit_party_button = ttk.Button(frm, text='Submit Party', command=lambda: submitParty(entry_widgets, user_id, root, frm, pokeName))
     submit_party_button.pack(pady=10)
 
+    # Back button to go back to the parties window
+    back_button = ttk.Button(frm, text='Back', command=lambda: partiesWindow(root, frm, user_id, pokeName))
+    back_button.pack()
+
+
 def submitParty(entry_widgets, user_id, root, frm, pokeName):
     # Collect the values from the entry widgets
     for entry in (entry_widgets):
@@ -280,7 +285,7 @@ def partiesWindow(root, frm, user_id, pokeName):
     new_party_button = ttk.Button(frm, text="New party", command=lambda: createParty(root, frm, user_id, pokeName))
     new_party_button.pack()
 
-    # Back button to go back to the parties window
+    # Back button to go back to the summary window
     back_button = ttk.Button(frm, text='Back', command=lambda: summaryWindow(pokeName, root, frm, user_id))
     back_button.pack()
 
