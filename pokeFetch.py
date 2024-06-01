@@ -334,7 +334,10 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
 
             delete_button = ttk.Button(summary_frame, text="Delete from party", command=lambda partyPos=partyPos: remove_from_party(root, frm, user_id, party_id, party, pokeName, partyPos))
             delete_button.grid(column=3, row=i, padx=5, pady=5)
-    
+        else:
+            partyPos = i
+            add_pokemon_button = ttk.Button(summary_frame, text="Add pokemon", command=lambda partyPos=partyPos: add_to_party(root, frm, summary_frame, table_frame, user_id, party_id, party, pokeName, partyPos))
+            add_pokemon_button.grid(column=3, row=i, padx=5, pady=5)
     strengths = []
     weaknesses = []
     immunities = []
@@ -364,7 +367,7 @@ def partySummaryWindow(root, frm, user_id, party_id, party, pokeName):
     type_coverage_label.grid(column=1, row=0) 
 
     # Column headers
-    headers = ["Strengths", "Weaknesses", "Immunities"]
+    headers = ["Strengths", "Weaknesses", "No effect"]
     for col, header in enumerate(headers):
         header_label = ttk.Label(table_frame, text=header, font=('', 12, 'bold'))
         header_label.grid(row=0, column=col, padx=5, pady=5)
@@ -438,7 +441,42 @@ def get_type_coverage(party):
 
     return type_coverage
 
+def add_to_party(root, frm, summary_frame, table_frame, user_id, party_id, party, pokeName, index):
+    # Create entry widget for party name
+    summary_frame.destroy()
+    table_frame.destroy()
+    frm.destroy()
+    frm = tk.Frame()
+    frm.pack()
+    add_frame = ttk.Frame(frm)
+    add_frame.pack()
 
+    add_pokemon_label = tk.Label(frm, text="Pokemon Name:", font=('', 15))
+    add_pokemon_label.pack()
+
+    add_pokemon_entry = ttk.Entry(frm, font=('', 15))
+    add_pokemon_entry.pack()
+
+    submit_entry_button = ttk.Button(frm, text="Submit", command=lambda: insert_into_party(root, frm, user_id, party_id, party, add_pokemon_entry.get(), index))
+    submit_entry_button.pack()
+
+def insert_into_party(root, frm, user_id, party_id, party, pokeName, index):
+    column_name = f"pokemon{index+1}"
+    print(column_name)
+    try:
+        query = f"UPDATE parties SET {column_name} = ? WHERE user_id = ? AND party_id = ?"
+        c.execute(query, (pokeName, user_id, party_id))
+        db.commit()
+        messagebox.showinfo("Success", "Pokemon added to party successfully!")
+    except sqlite3.Error as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+    finally:
+        party = c.execute(
+            "SELECT * FROM parties WHERE user_id = ? AND party_id = ?", [user_id, party_id]
+        )
+        party = c.fetchall()
+        print(party)
+        partySummaryWindow(root, frm, user_id, party_id, party[0][2:], pokeName) 
 # There is a pause when the party summary is reloaded. And it doesn't load the deletion until after backing out to the parties screen and back
 # into partySummaryWindow
 def remove_from_party(root, frm, user_id, party_id, party, pokeName, index):
