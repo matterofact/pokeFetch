@@ -137,12 +137,14 @@ def createParty(root, frm, user_id, pokeName):
 def submitParty(entry_widgets, user_id, root, frm, pokeName):
     # Collect the values from the entry widgets
     for entry in (entry_widgets):
-        try: 
-            pypokedex.get(name=entry.get()) 
-        except pypokedex.exceptions.PyPokedexError as err:
-            if err:
-                messagebox.showerror("Failed to create party", "Invalid pokemon name in party.")
-                return
+        if entry.get() == '':
+            continue
+            try: 
+                pypokedex.get(name=entry.get()) 
+            except pypokedex.exceptions.PyPokedexError as err:
+                if err:
+                    messagebox.showerror("Failed to create party", "Invalid pokemon name in party.")
+                    return
                 
     party_data = [entry.get() for entry in entry_widgets]
 
@@ -263,7 +265,7 @@ def partiesWindow(root, frm, user_id, pokeName):
             party = ttk.Label(frm, text=party[8])
         party.pack(pady=10)
         # Button to view detailed summary of the first party for demonstration
-        summary_button = ttk.Button(frm, text='View Party Summary', command=lambda i=i: partySummaryWindow(root, frm, user_id, party_id, parties[i][2:], pokeName))
+        summary_button = ttk.Button(frm, text='View Party Summary', command=lambda i=i, party_id=party_id: partySummaryWindow(root, frm, user_id, party_id, parties[i][2:], pokeName))
         summary_button.pack(pady=10)
 
         delete_button = ttk.Button(frm, text='Delete Party', command=lambda party_id=party_id: delete_party(party_id, root, frm, user_id, pokeName))
@@ -441,8 +443,9 @@ def get_type_coverage(party):
 
     return type_coverage
 
-def add_to_party(root, frm, summary_frame, table_frame, user_id, party_id, party, pokeName, index):
+def add_to_party(root, frm, summary_frame, table_frame, user_id, party_id, party, pokeName, partyPos):
     # Create entry widget for party name
+    print(party_id)
     summary_frame.destroy()
     table_frame.destroy()
     frm.destroy()
@@ -457,11 +460,19 @@ def add_to_party(root, frm, summary_frame, table_frame, user_id, party_id, party
     add_pokemon_entry = ttk.Entry(frm, font=('', 15))
     add_pokemon_entry.pack()
 
-    submit_entry_button = ttk.Button(frm, text="Submit", command=lambda: insert_into_party(root, frm, user_id, party_id, party, add_pokemon_entry.get(), index))
+    submit_entry_button = ttk.Button(frm, text="Submit", command=lambda partyPos=partyPos: insert_into_party(root, frm, user_id, party_id, party, add_pokemon_entry.get(), partyPos))
     submit_entry_button.pack()
 
-def insert_into_party(root, frm, user_id, party_id, party, pokeName, index):
-    column_name = f"pokemon{index+1}"
+    back_button = ttk.Button(frm, text="Back", command=lambda: partySummaryWindow(root, frm, user_id, party_id, party, pokeName))
+    back_button.pack()
+
+def insert_into_party(root, frm, user_id, party_id, party, pokeName, partyPos):
+    try:
+        pypokedex.get(name=pokeName.lower())
+    except pypokedex.exceptions.PyPokedexError:
+        messagebox.showinfo("Error", "Failed to add Pokemon. Pokemon does not exist")
+        return
+    column_name = f"pokemon{partyPos+1}"
     print(column_name)
     try:
         query = f"UPDATE parties SET {column_name} = ? WHERE user_id = ? AND party_id = ?"
